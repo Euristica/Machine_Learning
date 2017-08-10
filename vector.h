@@ -1,37 +1,38 @@
 #ifndef ML_VECTOR_H
 #define ML_VECTOR_H
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <stdint.h>
 #include <vector>
 
 template <typename T>
-class Vector;
+class MathArray;
 
 template <typename T, typename F>
-Vector<T> ZipApply(const Vector<T>& a, const Vector<T>& b, const F& f);
+MathArray<T> ZipApply(const MathArray<T>& a, const MathArray<T>& b, const F& f);
 
 template <typename T, typename F>
-Vector<T> Apply(const Vector<T>& a, const F& f);
+MathArray<T> Apply(const MathArray<T>& a, const F& f);
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const Vector<T> vector);
+std::ostream& operator<<(std::ostream& os, const MathArray<T> vector);
 
 template <typename T>
-class Vector {
+class MathArray {
 public:
-    Vector() = default;
-    Vector(const std::vector<T>& vector)
+    MathArray() = default;
+    MathArray(const std::vector<T>& vector)
         : V{vector}
     {}
-    Vector(uint32_t dim)
-        : V{dim}
+    MathArray(uint32_t dim)
+        : V(dim)
     {}
-    Vector(uint32_t dim, const T& value)
-        : V{dim, value}
+    MathArray(uint32_t dim, const T& value)
+        : V(dim, value)
     {}
-    Vector(std::initializer_list<T> list)
+    MathArray(std::initializer_list<T> list)
         : V{list}
     {}
 
@@ -39,85 +40,85 @@ public:
         return static_cast<uint32_t>(V.size());
     };
 
-    Vector<T> operator+(const Vector<T>& other) const {
-        return ::ZipApply(*this, other, [](const T& a, const T& b) {
-           return a + b;
+    MathArray<T> operator+(const MathArray<T>& other) const {
+        return ::ZipApply(*this, other, [](T& a, const T& b) {
+           a += b;
         });
     }
 
-    Vector<T>& operator+=(const Vector<T>& other) {
-        return ZipApply(other, [](const T& a, const T& b){
-            return a + b;
+    MathArray<T>& operator+=(const MathArray<T>& other) {
+        return ZipApply(other, [](T& a, const T& b){
+			a += b;
         });
     }
 
-    Vector<T> operator-(const Vector<T>& other) const {
-        return ::ZipApply(*this, other, [](const T& a, const T& b) {
-            return a - b;
+    MathArray<T> operator-(const MathArray<T>& other) const {
+        return ::ZipApply(*this, other, [](T& a, const T& b) {
+			a -= b;
         });
     }
 
-    Vector<T>& operator-=(const Vector<T>& other) {
-        return ZipApply(other, [](const T& a, const T& b) {
-            return a - b;
+    MathArray<T>& operator-=(const MathArray<T>& other) {
+        return ZipApply(other, [](T& a, const T& b) {
+			a -= b;
         });
     }
 
-    Vector<T> operator-() const {
-        return ::Apply(*this, [](const T& a) {
-            return -a;
+    MathArray<T> operator-() const {
+        return ::Apply(*this, [](T& x) {
+			x = -x;
         });
     }
 
-    Vector<T> operator*(const Vector<T>& other) const {
-        return ::ZipApply(*this, other, [](const T& a, const T& b) {
-            return a * b;
+    MathArray<T> operator*(const MathArray<T>& other) const {
+        return ::ZipApply(*this, other, [](T& a, const T& b) {
+			a *= b;
         });
     }
 
-    Vector<T>& operator*=(const Vector<T>& other) {
-        return ZipApply(other, [](const T& a, const T& b) {
-            return a * b;
+    MathArray<T>& operator*=(const MathArray<T>& other) {
+        return ZipApply(other, [](T& a, const T& b) {
+			a *= b;
         });
     }
 
-    Vector<T> operator/(const Vector<T>& other) const {
-        return ::ZipApply(*this, other, [](const T& a, const T& b) {
-            return a / b;
+    MathArray<T> operator/(const MathArray<T>& other) const {
+        return ::ZipApply(*this, other, [](T& a, const T& b) {
+			a /= b;
         });
     }
 
-    Vector<T>& operator/=(const Vector<T>& other) {
-        return ZipApply(other, [](const T& a, const T& b) {
-            return a / b;
-        });
-    }
-
-    template <typename SCALAR>
-    Vector<T> operator*(const SCALAR& value) const {
-        return ::Apply(*this, [&](const T& a) {
-            return a * value;
+    MathArray<T>& operator/=(const MathArray<T>& other) {
+        return ZipApply(other, [](T& a, const T& b) {
+			a /= b;
         });
     }
 
     template <typename SCALAR>
-    Vector<T>& operator*=(const SCALAR& value) {
-        return Apply([&](const T& a) {
-            return a * value;
+    MathArray<T> operator*(const SCALAR& value) const {
+        return ::Apply(*this, [&](T& x) {
+            x *= value;
         });
     }
 
     template <typename SCALAR>
-    Vector<T> operator/(const SCALAR& value) const {
-        return ::Apply(*this, [&](const T& a) {
-            return a / value;
+    MathArray<T>& operator*=(const SCALAR& value) {
+        return Apply([&](T& x) {
+            x *= value;
         });
     }
 
     template <typename SCALAR>
-    Vector<T>& operator/=(const SCALAR& value) {
-        return Apply([&](const T& a) {
-            return a / value;
+    MathArray<T> operator/(const SCALAR& value) const {
+        return ::Apply(*this, [&](T& x) {
+            x /= value;
+        });
+    }
+
+    template <typename SCALAR>
+    MathArray<T>& operator/=(const SCALAR& value) {
+        return Apply([&](T& x) {
+            x /= value;
         });
     }
 
@@ -158,10 +159,10 @@ public:
     }
 
     template <typename F>
-    Vector<T>& Apply(const F& f);
+    MathArray<T>& Apply(const F& f);
 
     template <typename F>
-    Vector<T>& ZipApply(const Vector<T>& other, const F& f);
+    MathArray<T>& ZipApply(const MathArray<T>& other, const F& f);
 
 private:
     std::vector<T> V;
@@ -169,23 +170,21 @@ private:
 
 template <typename T>
 template <typename F>
-Vector<T>& Vector<T>::Apply(const F& f) {
-    for (uint32_t i = 0; i < Size(); ++i) {
-        V[i] = f(V[i]);
-    }
+MathArray<T>& MathArray<T>::Apply(const F& f) {
+	std::for_each(V.begin(), V.end(), f);
     return *this;
 }
 
 template <typename T, typename F>
-Vector<T> Apply(const Vector<T>& a, const F& f) {
-    Vector<T> result = a;
+MathArray<T> Apply(const MathArray<T>& a, const F& f) {
+    MathArray<T> result = a;
     result.Apply(f);
     return result;
 }
 
 template <typename T>
 template <typename F>
-Vector<T>& Vector<T>::ZipApply(const Vector<T>& other, const F& f) {
+MathArray<T>& MathArray<T>::ZipApply(const MathArray<T>& other, const F& f) {
     if (Size() != other.Size()) {
         std::stringstream errorDescription;
         errorDescription << "Two vectors must be the same size, but "
@@ -194,20 +193,20 @@ Vector<T>& Vector<T>::ZipApply(const Vector<T>& other, const F& f) {
         throw std::length_error{errorDescription.str()};
     }
     for (uint32_t i = 0; i < Size(); ++i) {
-        V[i] = f(V[i], other.V[i]);
+        f(V[i], other.V[i]);
     }
     return *this;
 }
 
 template <typename T, typename F>
-Vector<T> ZipApply(const Vector<T>& a, const Vector<T>& b, const F& f) {
-    Vector<T> result = a;
+MathArray<T> ZipApply(const MathArray<T>& a, const MathArray<T>& b, const F& f) {
+    MathArray<T> result = a;
     result.ZipApply(b, f);
     return result;
 }
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const Vector<T> vector) {
+std::ostream& operator<<(std::ostream& os, const MathArray<T> vector) {
     os << "[";
     for (const T& x : vector) {
         os << x << ", ";
@@ -217,7 +216,7 @@ std::ostream& operator<<(std::ostream& os, const Vector<T> vector) {
 }
 
 template <typename T, typename SCALAR>
-inline Vector<T> operator*(const SCALAR& value, const Vector<T>& vector) {
+inline MathArray<T> operator*(const SCALAR& value, const MathArray<T>& vector) {
     return vector * value;
 }
 
