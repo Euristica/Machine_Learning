@@ -1,15 +1,11 @@
 #ifndef ML_MATRIX_H
 #define ML_MATRIX_H
 
-#include <vector>
-#include <stdint.h>
-#include "vector.h"
-
 #include <sstream>
 #include <vector>
 #include <stdint.h>
-#include "vector.h"
 #include <assert.h>
+#include "vector.h"
 
 template <typename T>
 class Matrix;
