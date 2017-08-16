@@ -1,15 +1,11 @@
 #ifndef ML_MATRIX_H
 #define ML_MATRIX_H
 
-#include <vector>
-#include <stdint.h>
-#include "vector.h"
-
+#include <algorithm>
 #include <sstream>
-#include <vector>
 #include <stdint.h>
+#include <vector>
 #include "vector.h"
-#include <assert.h>
 
 template <typename T>
 class Matrix;
@@ -24,20 +20,24 @@ template <typename T>
 class Matrix {
 public:
     Matrix() = default;
+
     Matrix(const std::vector<std::vector<T>>& matrix)
             : M(matrix.size())
     {
-        for (uint32_t i = 0; i < matrix[0].size(); i++)
+        for (uint32_t i = 0; i < matrix[0].size(); ++i)
             M[i] = MathArray<T>{matrix[i]};
     }
+
     Matrix(const std::initializer_list<std::initializer_list<T>>& matrix) {
         M.reserve(matrix.size());
         for (auto& item : matrix)
             M.push_back(item);
     }
+
     Matrix(const std::vector<MathArray<T>>& matrix)
     : M{matrix}
     {}
+
     Matrix(const MathArray<T>& vector)
             : M(vector.Size())
     {
@@ -45,6 +45,7 @@ public:
             M[i] = vector[i];
 
     }
+
     Matrix(uint32_t rows, uint32_t cols)
             : M(rows, MathArray<T>(cols))
     {}
@@ -59,8 +60,16 @@ public:
         return static_cast<uint32_t>(M[0].Size());
     }
 
-    Matrix<T>& Transpose();
-    Matrix<T>& InplaceTranspose();
+    Matrix<T>& Transpose() {
+      std::vector<MathArray<T>> result(Width(), Height());
+      for (uint32_t i = 0; i < Height(); ++i) {
+        for (uint32_t j = 0; j < Width(); ++j) {
+          result[j][i] = M[i][j];
+        }
+      }
+      M = result;
+      return *this;
+    }
 
     /*element-wise operations*/
     Matrix<T> operator+(const Matrix<T>& other) const {
@@ -68,6 +77,7 @@ public:
            a += b;
         });
     }
+
     Matrix<T>& operator+=(const Matrix<T>& other) {
         return ZipApply(other, [](T& a, const T& b) {
            a += b;
@@ -79,11 +89,13 @@ public:
             a -= b;
         });
     }
+
     Matrix<T>& operator-=(const Matrix<T>& other) {
         return ZipApply(other, [](T& a, const T& b) {
             a -= b;
         });
     }
+
     Matrix<T> operator-() const {
         return ::Apply(*this, [](MathArray<T>& a) {
             a = -a;
@@ -95,6 +107,7 @@ public:
             a *= b;
         });
     }
+
     Matrix<T>& operator*=(const Matrix<T>& other) {
         return ZipApply(other, [](T& a, const T& b) {
             a *= b;
@@ -106,37 +119,51 @@ public:
             a /= b;
         });
     }
+
     Matrix<T>& operator/=(const Matrix<T>& other) {
         return ZipApply(other, [](T& a, const T& b) {
             a /= b;
         });
     }
 
-    Matrix<T> operator*(const T& value) const {
+    template <typename SCALAR>
+    Matrix<T> operator*(const SCALAR& value) const {
         return ::Apply(*this, [&](MathArray<T>& a) {
            a *= value;
         });
     }
-    Matrix<T>& operator*=(const T& value) {
+
+    template <typename SCALAR>
+    Matrix<T>& operator*=(const SCALAR& value) {
         return Apply([&](MathArray<T>& a) {
             a *= value;
         });
     };
 
-    Matrix<T> operator/(const T& value) const {
+    template <typename SCALAR>
+    Matrix<T> operator/(const SCALAR& value) const {
         return ::Apply(*this, [&](MathArray<T>& a) {
             a /= value;
         });
     }
-    Matrix<T>& operator/=(const T& value) {
+
+    template <typename SCALAR>
+    Matrix<T>& operator/=(const SCALAR& value) {
         return Apply([&](MathArray<T>& a) {
             a /= value;
         });
     }
 
-    // matrix operations
+    /*matrix operations*/
     Matrix<T>& Dot(const Matrix<T>& other) {
-        assert(Width() == other.Height());
+        if (Width() != other.Height()) {
+            std::stringstream errorDescription;
+            errorDescription << "The number of rows of one matrix must be "
+                             << "equal to the number of columns of the "
+                             << "other matrix, but " << Width() << " and "
+                             << other.Height() << " were given.";
+            throw std::length_error{errorDescription.str()};
+        }
         std::vector<MathArray<T>> result(Height(),  MathArray<T>(other.Width()));
         for (uint32_t i = 0; i < Height(); ++i) {
             for (uint32_t j = 0; j < other.Width(); ++j) {
@@ -164,6 +191,7 @@ public:
         }
         return M[i];
     }
+
     const MathArray<T> operator[](uint32_t i) const {
         if (i >= Height()){
             std::stringstream errorDescription;
@@ -174,14 +202,28 @@ public:
         return M[i];
     };
 
-    Matrix<T> VStack(const Matrix<T>& other) const;
+    Matrix<T> VStack(const Matrix<T>& other) const {
+      MathArray<T> result();
+    }
 
     Matrix<T> HStack(const Matrix<T>& other) const;
 
 private:
     // vector of Rows
     std::vector<MathArray<T>> M;
+
 };
+
+template <typename T>
+Matrix<T> Transpose(const Matrix<T>& a) {
+  Matrix<T> result(a.Width(), a.Height());
+  for (uint32_t i = 0; i < a.Height(); ++i) {
+    for (uint32_t j = 0; j < a.Width(); ++j) {
+      result[j][i] = a[i][j];
+    }
+  }
+  return result;
+}
 
 template <typename T>
 template <typename F>
@@ -200,7 +242,7 @@ Matrix<T> Apply(const Matrix<T>& a, const F& f) {
 template <typename T>
 template <typename F>
 Matrix<T>& Matrix<T>::ZipApply(const Matrix<T>& other, const F &f) {
-    if ((Height() != other.Height()) or (M[0].Size() != other.Width())) {
+    if ((Height() != other.Height()) || (M[0].Size() != other.Width())) {
         std::stringstream errorDescription;
         errorDescription << "Two matrices must be same size, but "
                          << "Height first matrix: " << Height()
@@ -223,6 +265,5 @@ Matrix<T> ZipApply(const Matrix<T>& a, const Matrix<T>& b, const F& f) {
     result.ZipApply(b, f);
     return result;
 }
-
 
 #endif //ML_MATRIX_H
