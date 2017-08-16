@@ -1,10 +1,17 @@
 #ifndef ML_MATRIX_H
 #define ML_MATRIX_H
 
+<<<<<<< HEAD
 #include <algorithm>
+=======
+>>>>>>> 27a03d66c694932f058560fed44531bf2fa74955
 #include <sstream>
 #include <stdint.h>
+<<<<<<< HEAD
 #include <vector>
+=======
+#include <assert.h>
+>>>>>>> 27a03d66c694932f058560fed44531bf2fa74955
 #include "vector.h"
 
 template <typename T>
