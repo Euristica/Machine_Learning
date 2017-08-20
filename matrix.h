@@ -5,10 +5,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <vector>
-<<<<<<< HEAD
-=======
 #include <assert.h>
->>>>>>> 9ed4a653d27c721b0f53afb26b19a7b6dd115b3c
 #include "vector.h"
 
 template <typename T>
