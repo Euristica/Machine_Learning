@@ -1,17 +1,10 @@
 #ifndef ML_MATRIX_H
 #define ML_MATRIX_H
 
-<<<<<<< HEAD
 #include <algorithm>
-=======
->>>>>>> 27a03d66c694932f058560fed44531bf2fa74955
 #include <sstream>
 #include <stdint.h>
-<<<<<<< HEAD
 #include <vector>
-=======
-#include <assert.h>
->>>>>>> 27a03d66c694932f058560fed44531bf2fa74955
 #include "vector.h"
 
 template <typename T>
@@ -42,7 +35,7 @@ public:
     }
 
     Matrix(const std::vector<MathArray<T>>& matrix)
-    : M{matrix}
+            : M{matrix}
     {}
 
     Matrix(const MathArray<T>& vector)
@@ -210,7 +203,11 @@ public:
     };
 
     Matrix<T> VStack(const Matrix<T>& other) const {
-      MathArray<T> result();
+        Matrix<T> result;
+        result.M.reserve(M.size() + other.M.size());
+        result.M = M;
+        result.M.insert(result.M.end(), other.M.begin(), other.M.end());
+        return result;
     }
 
     Matrix<T> HStack(const Matrix<T>& other) const;
@@ -218,7 +215,6 @@ public:
 private:
     // vector of Rows
     std::vector<MathArray<T>> M;
-
 };
 
 template <typename T>
